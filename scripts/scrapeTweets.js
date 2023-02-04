@@ -32,9 +32,10 @@ export default async function getData(url) {
   console.log("Going to", url);
   await page.goto(url, { waitUntil: 'networkidle0' });
   console.log("Evaluating selector for the html...");
-  const data = await page.evaluate(() => document.querySelector('*').outerHTML);
+  const results = await page.$$eval('article div[lang]', (tweets) => tweets.map((tweet) => tweet.textContent));
+  console.log(results);
 
-  return data;
+  return results;
 }
 
 console.log(argv);

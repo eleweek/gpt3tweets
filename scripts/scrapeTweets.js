@@ -1,6 +1,7 @@
 import chrome from "chrome-aws-lambda";
 import puppeteer from "puppeteer-core";
 import { argv } from "node:process";
+import { fstat } from "node:fs";
 
 const FAKE_USER_AGENT_STRING =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36";
@@ -59,7 +60,7 @@ function constructTwitterSearchUrl(user, untilTimestamp) {
   );
 }
 
-export default async function getTweets(user) {
+export default async function getTweets(user, limit) {
   console.log("Creating browser...");
   const browser = await puppeteer.launch(PUPPETEER_OPTIONS);
 
@@ -88,6 +89,11 @@ export default async function getTweets(user) {
     console.log("Got", resultsBatch.length, "tweets");
     console.log("Total tweets:", tweets.size);
 
+    if (tweets.size >= limit) {
+      console.log("Tweet limit reached, stopping");
+      break;
+    }
+
     if (resultsBatch.length === 0) {
       break;
     }
@@ -103,6 +109,14 @@ export default async function getTweets(user) {
 }
 
 console.log(argv);
-getTweets(argv[2])
-  .then(console.log)
+getTweets(argv[2], 500)
+  .then(() =>
+    fs.writeFileSync(
+      "dataset.txt",
+      tweets.map((tweet) => ({
+        prompt: "Write a tweet in the style of twitter user @" + argv[2] + ":",
+        completion: tweet.text,
+      }))
+    )
+  )
   .catch((e) => console.error(e));

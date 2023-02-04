@@ -21,9 +21,10 @@ const PUPPETEER_OPTIONS = process.env.AWS_REGION
     };
 
 async function parseTweetsFromPage(page) {
-  const tweetTexts = await page.$$eval(
-    "article div[lang]:first-of-type",
-    (tweets) => tweets.map((tweet) => tweet.textContent)
+  const tweets = await page.$$("article");
+
+  const tweetTexts = tweets.map((tweet) =>
+    tweet.$eval("div[lang]", (el) => el.textContent)
   );
 
   // div[data-testid="User-Names"] to not get the quote tweets
@@ -80,11 +81,12 @@ export default async function getTweets(user) {
 
     const resultsBatch = await parseTweetsFromPage(page);
 
-    console.log("Got", resultsBatch.length, "tweets");
-
     for (const result of resultsBatch) {
       tweets.add(result.text);
     }
+
+    console.log("Got", resultsBatch.length, "tweets");
+    console.log("Total tweets:", tweets.size);
 
     if (resultsBatch.length === 0) {
       break;

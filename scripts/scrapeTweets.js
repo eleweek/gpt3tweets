@@ -1,7 +1,7 @@
 import chrome from "chrome-aws-lambda";
 import puppeteer from "puppeteer-core";
 import { argv } from "node:process";
-import { fstat } from "node:fs";
+import { writeFileSync } from "node:fs";
 
 const FAKE_USER_AGENT_STRING =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36";
@@ -22,34 +22,24 @@ const PUPPETEER_OPTIONS = process.env.AWS_REGION
     };
 
 async function parseTweetsFromPage(page) {
+  const results = [];
   const tweets = await page.$$("article");
 
-  const tweetTexts = tweets.map((tweet) =>
-    tweet.$eval("div[lang]", (el) => el.textContent)
-  );
+  for (const tweet of tweets) {
+    try {
+      const tweetText = await tweet.$eval("div[lang]", (el) => el.textContent);
+      const tweetDate = await tweet.$eval("time", (el) => el.dateTime);
 
-  // div[data-testid="User-Names"] to not get the quote tweets
-  const dates = await page.$$eval(
-    'article div[data-testid="User-Names"] time',
-    (dates) => dates.map((date) => date.dateTime)
-  );
-  if (tweetTexts.length !== dates.length) {
-    console.log(tweetTexts);
-    throw new Error(
-      "tweet texts and dates length mismatch: " +
-        tweetTexts.length +
-        " vs " +
-        dates.length
-    );
+      results.push({
+        text: tweetText,
+        date: new Date(tweetDate),
+      });
+    } catch (e) {
+      console.error("Skipping tweet because of error", e);
+    }
   }
 
-  // Zip results and dates together
-  return tweetTexts.map((result, index) => {
-    return {
-      text: result,
-      date: new Date(dates[index]),
-    };
-  });
+  return results;
 }
 
 function constructTwitterSearchUrl(user, untilTimestamp) {
@@ -109,14 +99,15 @@ export default async function getTweets(user, limit) {
 }
 
 console.log(argv);
-getTweets(argv[2], 500)
-  .then(() =>
-    fs.writeFileSync(
-      "dataset.txt",
-      tweets.map((tweet) => ({
-        prompt: "Write a tweet in the style of twitter user @" + argv[2] + ":",
-        completion: tweet.text,
-      }))
-    )
-  )
+getTweets(argv[2], parseInt(argv[3], 10))
+  .then((tweets) => {
+    const dataset = Array.from(tweets).map((tweet) => ({
+      prompt: "",
+      completion: " " + tweet,
+    }));
+    writeFileSync(
+      "dataset.jsonl",
+      dataset.map((obj) => JSON.stringify(obj)).join("\n")
+    );
+  })
   .catch((e) => console.error(e));

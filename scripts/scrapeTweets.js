@@ -102,7 +102,7 @@ console.log(argv);
 getTweets(argv[2], parseInt(argv[3], 10))
   .then((tweets) => {
     const dataset = Array.from(tweets).map((tweet) => ({
-      prompt: "",
+      prompt: "Write a tweet in the style of a twitter user @" + argv[2] + ":",
       completion: " " + tweet,
     }));
     writeFileSync(

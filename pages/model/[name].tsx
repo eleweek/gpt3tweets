@@ -4,13 +4,19 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 export default function Model() {
-  const router = useRouter();
-  const { name } = router.query;
+  const { query, isReady } = useRouter();
+  const { name } = query;
+
+  if (isReady) {
+    fetch(`/api/model/${name}/generate_tweet`)
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  }
 
   return (
     <div className="container">
       <Head>
-        <title>GPT3 tweets: {name}</title>
+        <title>GPT3 tweets: {isReady ? name : "Loading..."}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="px-16 py-24">

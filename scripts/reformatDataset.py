@@ -41,5 +41,5 @@ def main():
         f.write('\n'.join([json.dumps({"prompt": generate_prompt(random.sample(top_texts, 8)), "completion": text + "\n######"}) for text in texts]))
 
 if __name__ == "__main__":
-    # main()
-    pass
+    main()
+    # pass

@@ -15,7 +15,7 @@ function scrapeCurrentTweets() {
             'div[data-testid="User-Names"] > div:nth-child(2) > div > div'
           ).innerText,
           text: article.querySelector("div[lang]").innerText,
-          likes: parseInt(
+          likes_count: parseInt(
             article.querySelector('[data-testid="like"]').innerText,
             10
           ),

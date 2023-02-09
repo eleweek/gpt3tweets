@@ -46,7 +46,8 @@ function GenerateTweetButton({ onClick, isGenerating }) {
       type="button"
       className={classnames(
         isGenerating && "cursor-not-allowed",
-        "inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-white bg-indigo-500 hover:bg-indigo-400 transition ease-in-out duration-150"
+        isGenerating ? "bg-indigo-300" : "bg-indigo-500",
+        "hover:scale-110 hover:translate-x-[5%] inline-flex items-center px-6 py-3 font-semibold leading-6 text-xl shadow rounded-md text-white transition ease-in-out duration-300"
       )}
     >
       {isGenerating && (

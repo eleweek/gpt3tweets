@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from("models")
-    .select("openai_model_name, tweet_prompt")
+    .select("id, openai_model_name, tweet_prompt")
     .eq("display_model_name", model);
 
   console.log("generate_tweet handler", model);
@@ -40,12 +40,32 @@ export default async function handler(req, res) {
       stop: ["###", "######"],
     });
 
-    res.end(
-      JSON.stringify({
-        error: null,
-        text: response.data.choices[0].text,
+    const responseText = response.data.choices[0].text;
+
+    const { data: dataInserted, error: errorInserted } = await supabase
+      .from("generated_tweets")
+      .insert({
+        model_id: data[0].id,
+        text: responseText,
       })
-    );
+      .select();
+
+    if (errorInserted) {
+      res.end(
+        JSON.stringify({
+          error: errorInserted,
+          text: responseText,
+        })
+      );
+    } else {
+      res.end(
+        JSON.stringify({
+          error: null,
+          text: responseText,
+          id: dataInserted[0].id,
+        })
+      );
+    }
   } else {
     res.end(
       JSON.stringify({

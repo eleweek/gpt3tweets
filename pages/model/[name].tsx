@@ -8,7 +8,6 @@ import Head from "next/head";
 async function requestTweetFromOpenAi(name) {
   const res = await fetch(`/api/model/${name}/generate_tweet`);
   const json = await res.json();
-  console.log("generateTweet", json);
 
   return json;
 }
@@ -63,7 +62,7 @@ function GenerateTweetButton({ onClick, isGenerating }) {
             cy="12"
             r="10"
             stroke="currentColor"
-            stroke-width="4"
+            strokeWidth="4"
           ></circle>
           <path
             className="opacity-75"
@@ -96,7 +95,7 @@ function Tweet({ text }) {
   // }
 
   return (
-    <motion.div layout className="p-4 rounded-2xl bg-white mb-6">
+    <motion.div layout className="p-4 rounded-xl bg-white mb-4">
       <p className="text-2xl">{text}</p>
     </motion.div>
   );
@@ -121,7 +120,7 @@ export default function Model() {
             setError(json.error);
             setIsGenerating(false);
           } else {
-            setTweets([json.text, ...tweets]);
+            setTweets([{ text: json.text, id: json.id }, ...tweets]);
             setIsGenerating(false);
           }
         });
@@ -146,15 +145,15 @@ export default function Model() {
         <title>GPT3 tweets: {isReady ? name : "Loading..."}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="px-16 py-24">
+      <div className="px-16 py-16">
         <GenerateTweetButton
           onClick={generateTweet}
           isGenerating={isGenerating}
         />
-        <h1 className="text-5xl font-bold py-6">{name}: GPT-3 tweets</h1>
+        <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
         <AnimatePresence>
           {tweets.map((tweet) => (
-            <Tweet key={tweet} text={tweet} />
+            <Tweet key={tweet.id} text={tweet.text} />
           ))}
         </AnimatePresence>
       </div>

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import classnames from "classnames";
 
@@ -77,11 +77,28 @@ function GenerateTweetButton({ onClick, isGenerating }) {
   );
 }
 
+const transition = { type: "spring", stiffness: 500, damping: 50, mass: 1 };
 function Tweet({ text }) {
+  // const animations = {
+  //   layout: true,
+  //   initial: 'out',
+  //   style: {
+  //     // position: isPresent ? 'static' : 'absolute'
+  //     position: 'static'
+  //   },
+  //   animate: 'in',
+  //   // whileTap: 'tapped',
+  //   variants: {
+  //     in: { scaleY: 1, opacity: 1 },
+  //     out: { scaleY: 0, opacity: 0, zIndex: -1 },
+  //   },
+  //   transition
+  // }
+
   return (
-    <div className="p-6 rounded-2xl bg-white">
-      <p className="text-3xl">{text}</p>
-    </div>
+    <motion.div layout className="p-4 rounded-2xl bg-white mb-6">
+      <p className="text-2xl">{text}</p>
+    </motion.div>
   );
 }
 
@@ -89,7 +106,7 @@ export default function Model() {
   const { query, isReady } = useRouter();
   const { name } = query;
 
-  const [tweet, setTweet] = useState(null);
+  const [tweets, setTweets] = useState([]);
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -104,7 +121,7 @@ export default function Model() {
             setError(json.error);
             setIsGenerating(false);
           } else {
-            setTweet(json.text);
+            setTweets([json.text, ...tweets]);
             setIsGenerating(false);
           }
         });
@@ -114,8 +131,8 @@ export default function Model() {
     name,
     setIsGenerating,
     setError,
-    setTweet,
-    tweet,
+    setTweets,
+    tweets,
     error,
     isGenerating,
     isReady,
@@ -130,14 +147,16 @@ export default function Model() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="px-16 py-24">
+        <GenerateTweetButton
+          onClick={generateTweet}
+          isGenerating={isGenerating}
+        />
         <h1 className="text-5xl font-bold py-6">{name}: GPT-3 tweets</h1>
-        <div className="py-6">
-          <GenerateTweetButton
-            onClick={generateTweet}
-            isGenerating={isGenerating}
-          />
-        </div>
-        <Tweet text={tweet} />
+        <AnimatePresence>
+          {tweets.map((tweet) => (
+            <Tweet key={tweet} text={tweet} />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

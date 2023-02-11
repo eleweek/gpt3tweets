@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import classnames from "classnames";
@@ -12,7 +12,39 @@ async function requestTweetFromOpenAi(name) {
   return json;
 }
 
-function GenerateTweetButton({ onClick, isGenerating }) {
+async function getHistory(name) {
+  const res = await fetch(`/api/model/${name}/history`);
+  const json = await res.json();
+
+  return json;
+}
+
+function Spinner() {
+  return (
+    <svg
+      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+  );
+}
+
+function GenerateTweetButton({ onClick, isGenerating, isLoadingHistory }) {
   return (
     <button
       disabled={isGenerating}
@@ -24,29 +56,12 @@ function GenerateTweetButton({ onClick, isGenerating }) {
         "hover:scale-110 hover:translate-x-[5%] inline-flex items-center px-6 py-3 font-semibold leading-6 text-xl shadow rounded-md text-white transition ease-in-out duration-300"
       )}
     >
-      {isGenerating && (
-        <svg
-          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      )}
-      {isGenerating ? "Generating tweet" : "Generate tweet"}
+      {(isGenerating || isLoadingHistory) && <Spinner />}
+      {isLoadingHistory
+        ? "Loading..."
+        : isGenerating
+        ? "Generating tweet"
+        : "Generate tweet"}
     </button>
   );
 }
@@ -80,9 +95,21 @@ export default function Model() {
   const { query, isReady } = useRouter();
   const { name } = query;
 
-  const [tweets, setTweets] = useState([]);
+  const [tweets, setTweets] = useState(null);
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (isReady && name) {
+      getHistory(name).then((json) => {
+        if (json.error) {
+          console.log("Error", json.error);
+        } else {
+          setTweets(json.tweets);
+        }
+      });
+    }
+  }, [isReady, name]);
 
   const generateTweet = useCallback(() => {
     if (isReady) {
@@ -124,12 +151,12 @@ export default function Model() {
         <GenerateTweetButton
           onClick={generateTweet}
           isGenerating={isGenerating}
+          isLoadingHistory={tweets === null}
         />
         <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
         <AnimatePresence>
-          {tweets.map((tweet) => (
-            <Tweet key={tweet.id} text={tweet.text} />
-          ))}
+          {tweets &&
+            tweets.map((tweet) => <Tweet key={tweet.id} text={tweet.text} />)}
         </AnimatePresence>
       </div>
     </div>

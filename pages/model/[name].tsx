@@ -56,24 +56,32 @@ function Spinner() {
 }
 
 function GenerateTweetButton({ onClick, isGenerating, isLoadingHistory }) {
+  const buttonCommonClasses =
+    "inline-flex items-center px-6 py-3 font-semibold leading-6 text-xl rounded-md text-white";
   return (
-    <button
-      disabled={isGenerating}
-      onClick={onClick}
-      type="button"
-      className={classnames(
-        isGenerating && "cursor-not-allowed",
-        isGenerating ? "bg-indigo-300" : "bg-indigo-500",
-        "hover:scale-110 hover:translate-x-[5%] inline-flex items-center px-6 py-3 font-semibold leading-6 text-xl shadow rounded-md text-white transition ease-in-out duration-300"
-      )}
-    >
-      {(isGenerating || isLoadingHistory) && <Spinner />}
-      {isLoadingHistory
-        ? "Loading..."
-        : isGenerating
-        ? "Generating tweet"
-        : "Generate tweet"}
-    </button>
+    <div className="mr-8">
+      <button
+        disabled={isGenerating}
+        onClick={onClick}
+        type="button"
+        className={classnames(
+          (isGenerating || isLoadingHistory) && "cursor-not-allowed",
+          isGenerating || isLoadingHistory ? "bg-indigo-300" : "bg-indigo-500",
+          buttonCommonClasses,
+          "absolute hover:scale-110 hover:translate-x-[5%] transition ease-in-out duration-300"
+        )}
+      >
+        {(isGenerating || isLoadingHistory) && <Spinner />}
+        {isLoadingHistory
+          ? "Loading..."
+          : isGenerating
+          ? "Generating tweet"
+          : "Generate tweet"}
+      </button>
+      <div className={classnames(buttonCommonClasses, "invisible")}>
+        <div className="-ml-1 mr-3 h-5 w-5" /> Generating tweet
+      </div>
+    </div>
   );
 }
 
@@ -330,13 +338,11 @@ export default function Model() {
       </Head>
       <div className="px-16 py-16">
         <div className="flex flex-row items-center mb-3">
-          <div className="mr-8">
-            <GenerateTweetButton
-              onClick={generateTweet}
-              isGenerating={isGenerating}
-              isLoadingHistory={tweets === null}
-            />
-          </div>
+          <GenerateTweetButton
+            onClick={generateTweet}
+            isGenerating={isGenerating}
+            isLoadingHistory={tweets === null}
+          />
           <SortBy
             onSortByVotes={handleSortByVotes}
             isSortByVotes={isSortByVotes}

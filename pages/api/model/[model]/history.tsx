@@ -25,7 +25,8 @@ export default async function handler(req, res) {
         .from("generated_tweets")
         .select("id, text, votes")
         .eq("model_id", id)
-        .order("created_at", { ascending: false })
+        .order("votes", { ascending: false })
+        .order("id", { ascending: false })
         .limit(MAX_TWEETS);
 
       if (data) {

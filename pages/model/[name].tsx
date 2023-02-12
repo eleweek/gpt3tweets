@@ -97,7 +97,11 @@ function VoteButton({ Icon, onClick, className }) {
 
 function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   return (
-    <motion.div layout className="p-4 rounded-xl bg-white mb-4 flex flex-row">
+    <motion.div
+      layout
+      transition={{ delay: 0.5 }}
+      className="p-4 rounded-xl bg-white mb-4 flex flex-row"
+    >
       <div className="flex flex-col content-center mt-1.5 mr-5">
         <VoteButton
           Icon={ChevronUpIcon}
@@ -153,6 +157,11 @@ export default function Model() {
 
         const updatedTweets = [...tweets];
         updatedTweets.find((t) => t.id === id).votes += deltaVotes;
+        updatedTweets.sort((a, b) => {
+          if (a.votes !== b.votes) return b.votes - a.votes;
+
+          return b.id - a.id;
+        });
         setTweets(updatedTweets);
 
         console.log(

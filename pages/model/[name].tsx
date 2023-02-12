@@ -132,7 +132,7 @@ function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
           Icon={ChevronUpIcon}
           onClick={onVoteUp}
           className={classnames(
-            "h-6 w-6",
+            "h-6 w-6 hover:cursor-pointer",
             myVote <= 0 ? "text-gray-300" : "text-emerald-700 stroke-[3px]"
           )}
         />
@@ -152,7 +152,7 @@ function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
           Icon={ChevronDownIcon}
           onClick={onVoteDown}
           className={classnames(
-            "h-6 w-6",
+            "h-6 w-6 hover:cursor-pointer",
             myVote >= 0 ? "text-gray-300" : "text-amber-700 stroke-[3px]"
           )}
         />

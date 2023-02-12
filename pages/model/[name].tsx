@@ -98,10 +98,19 @@ function VoteButton({ Icon, onClick, className }) {
   );
 }
 
+let _latestTweetScroll = 0;
 function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
+  _latestTweetScroll = window.scrollY;
   return (
     <motion.div
       layout
+      onLayoutAnimationStart={() => {
+        // This hack is needed for chrome because framer-motion sometimes causes weird jumping issues
+        // when reordering from the bottom of the page
+        if (Math.abs(window.scrollY - _latestTweetScroll) > 100) {
+          window.scrollTo(0, _latestTweetScroll);
+        }
+      }}
       transition={{
         layout: {
           duration: 0.35,

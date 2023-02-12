@@ -175,40 +175,28 @@ function SortBy({ onSortByVotes, isSortByVotes }) {
         role="tablist"
         aria-orientation="horizontal"
       >
-        <div>
-          {isSortByVotes && selection}
-          <button
-            onClick={() => onSortByVotes(true)}
-            className="flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
-            type="button"
-          >
-            <span
-              className={classnames(
-                isSortByVotes ? "text-slate-900" : "text-slate-600",
-                "ml-2 z-10"
-              )}
+        {[
+          ["Votes", true],
+          ["Created", false],
+        ].map(([label, value]) => (
+          <div>
+            {isSortByVotes === value && selection}
+            <button
+              onClick={() => onSortByVotes(value)}
+              className="flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
+              type="button"
             >
-              Votes
-            </span>
-          </button>
-        </div>
-        <div>
-          {!isSortByVotes && selection}
-          <button
-            onClick={() => onSortByVotes(false)}
-            className="flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
-            type="button"
-          >
-            <span
-              className={classnames(
-                !isSortByVotes ? "text-slate-900" : "text-slate-600",
-                "z-10 ml-2"
-              )}
-            >
-              Created
-            </span>
-          </button>
-        </div>
+              <span
+                className={classnames(
+                  isSortByVotes === value ? "text-slate-900" : "text-slate-600",
+                  "ml-2 z-10"
+                )}
+              >
+                {label}
+              </span>
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

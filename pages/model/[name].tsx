@@ -83,8 +83,11 @@ function VoteButton({ Icon, onClick, className }) {
 
   const handleClick = useCallback(() => {
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), ANIMATION_DURATION);
-    onClick();
+    setTimeout(() => {
+      setIsAnimating(false);
+      // as a hack we call onClick after the animation is done
+      setTimeout(onClick, 50);
+    }, ANIMATION_DURATION);
   }, [onClick, setIsAnimating, isAnimating]);
 
   return (
@@ -295,7 +298,7 @@ export default function Model() {
           <SortBy onSortByVotes={handleSortByVotes} />
         </div>
         <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
-        <AnimatePresence>
+        <div>
           {tweets &&
             tweets.map((tweet) => {
               const myVote = myVotes[tweet.id] || 0;
@@ -310,7 +313,7 @@ export default function Model() {
                 />
               );
             })}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

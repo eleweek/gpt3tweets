@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
@@ -98,9 +98,18 @@ function VoteButton({ Icon, onClick, className }) {
   );
 }
 
-function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
+function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
   return (
-    <motion.div layout className="p-4 rounded-xl bg-white mb-4 flex flex-row">
+    <motion.div
+      layout
+      transition={{
+        layout: {
+          duration: 0.35,
+        },
+      }}
+      layoutId={layoutId}
+      className="p-4 rounded-xl bg-white mb-4 flex flex-row"
+    >
       <div className="flex flex-col content-center mr-5">
         <VoteButton
           Icon={ChevronUpIcon}
@@ -136,7 +145,7 @@ function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   );
 }
 
-function SortBy({ onSortByVotes }) {
+function SortBy({ onSortByVotes, isSortByVotes }) {
   return (
     <div className="flex flex-row items-center">
       <div className="text-xl font-bold mr-2">Sort by</div>
@@ -144,14 +153,18 @@ function SortBy({ onSortByVotes }) {
         <button
           onClick={() => onSortByVotes(false)}
           type="button"
-          className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className={classnames(
+            "relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          )}
         >
           Created time
         </button>
         <button
           onClick={() => onSortByVotes(true)}
           type="button"
-          className="relative -ml-px inline-flex items-center rounded-r-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className={classnames(
+            "relative -ml-px inline-flex items-center rounded-r-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          )}
         >
           Votes
         </button>
@@ -295,15 +308,19 @@ export default function Model() {
               isLoadingHistory={tweets === null}
             />
           </div>
-          <SortBy onSortByVotes={handleSortByVotes} />
+          <SortBy
+            onSortByVotes={handleSortByVotes}
+            isSortByVotes={isSortByVotes}
+          />
         </div>
         <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
-        <div>
+        <motion.div layout>
           {tweets &&
             tweets.map((tweet) => {
               const myVote = myVotes[tweet.id] || 0;
               return (
                 <Tweet
+                  layoutId={tweet.id}
                   key={tweet.id}
                   text={tweet.text}
                   votes={tweet.votes}
@@ -313,7 +330,7 @@ export default function Model() {
                 />
               );
             })}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -77,11 +77,30 @@ function GenerateTweetButton({ onClick, isGenerating, isLoadingHistory }) {
   );
 }
 
+function VoteButton({ Icon, onClick, className }) {
+  const ANIMATION_DURATION = 300;
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), ANIMATION_DURATION);
+    onClick();
+  }, [onClick, setIsAnimating, isAnimating]);
+
+  return (
+    <Icon
+      onClick={handleClick}
+      className={classnames(className, isAnimating && "animate-ping")}
+    />
+  );
+}
+
 function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   return (
     <motion.div layout className="p-4 rounded-xl bg-white mb-4 flex flex-row">
       <div className="flex flex-col content-center mt-1.5 mr-5">
-        <ChevronUpIcon
+        <VoteButton
+          Icon={ChevronUpIcon}
           onClick={onVoteUp}
           className={classnames(
             "h-6 w-6",
@@ -100,7 +119,8 @@ function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
         >
           {votes}
         </div>
-        <ChevronDownIcon
+        <VoteButton
+          Icon={ChevronDownIcon}
           onClick={onVoteDown}
           className={classnames(
             "h-6 w-6",

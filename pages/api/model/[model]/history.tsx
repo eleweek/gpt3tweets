@@ -12,12 +12,10 @@ export default async function handler(req, res) {
 
   if (data) {
     if (data.length === 0) {
-      res.end(
-        JSON.stringify({
-          error: "No model found",
-          text: null,
-        })
-      );
+      res.json({
+        error: "No model found",
+        text: null,
+      });
     } else {
       const id = data[0].id;
 
@@ -30,27 +28,21 @@ export default async function handler(req, res) {
         .limit(MAX_TWEETS);
 
       if (data) {
-        res.end(
-          JSON.stringify({
-            error: null,
-            tweets: dataTweets,
-          })
-        );
+        res.json({
+          error: null,
+          tweets: dataTweets,
+        });
       } else {
-        res.end(
-          JSON.stringify({
-            error: errorTweets,
-            tweets: null,
-          })
-        );
+        res.json({
+          error: errorTweets,
+          tweets: null,
+        });
       }
     }
   } else {
-    res.end(
-      JSON.stringify({
-        error: error,
-        text: null,
-      })
-    );
+    res.json({
+      error: error,
+      text: null,
+    });
   }
 }

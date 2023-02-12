@@ -17,12 +17,10 @@ export default async function handler(req, res) {
 
   if (data) {
     if (data.length === 0) {
-      res.end(
-        JSON.stringify({
-          error: "No model found",
-          text: null,
-        })
-      );
+      res.json({
+        error: "No model found",
+        text: null,
+      });
     }
 
     const openai = new OpenAIApi(configuration);
@@ -47,28 +45,22 @@ export default async function handler(req, res) {
       .select();
 
     if (errorInserted) {
-      res.end(
-        JSON.stringify({
-          error: errorInserted,
-          text: responseText,
-        })
-      );
+      res.json({
+        error: errorInserted,
+        text: responseText,
+      });
     } else {
-      res.end(
-        JSON.stringify({
-          error: null,
-          text: responseText,
-          id: dataInserted[0].id,
-          votes: 0,
-        })
-      );
+      res.json({
+        error: null,
+        text: responseText,
+        id: dataInserted[0].id,
+        votes: 0,
+      });
     }
   } else {
-    res.end(
-      JSON.stringify({
-        error: error,
-        text: null,
-      })
-    );
+    res.json({
+      error: error,
+      text: null,
+    });
   }
 }

@@ -157,27 +157,33 @@ function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
 function SortBy({ onSortByVotes, isSortByVotes }) {
   return (
     <div className="flex flex-row items-center">
-      <div className="text-xl font-bold mr-2">Sort by</div>
-      <span className="isolate inline-flex rounded-md shadow-sm">
-        <button
-          onClick={() => onSortByVotes(false)}
-          type="button"
-          className={classnames(
-            "relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          )}
-        >
-          Created time
-        </button>
+      <div className="text-xl font-bold mr-4">Sort by</div>
+      <div
+        className="flex space-x-1 rounded-lg bg-slate-200 p-0.5"
+        role="tablist"
+        aria-orientation="horizontal"
+      >
         <button
           onClick={() => onSortByVotes(true)}
-          type="button"
           className={classnames(
-            "relative -ml-px inline-flex items-center rounded-r-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            isSortByVotes && "bg-white shadow",
+            "flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
           )}
+          type="button"
         >
-          Votes
+          <span className="ml-2 text-slate-600">Votes</span>
         </button>
-      </span>
+        <button
+          onClick={() => onSortByVotes(false)}
+          className={classnames(
+            !isSortByVotes && "bg-white shadow",
+            "flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
+          )}
+          type="button"
+        >
+          <span className="ml-2 text-slate-900">Created</span>
+        </button>
+      </div>
     </div>
   );
 }

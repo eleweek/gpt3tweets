@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
+
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+
 import classnames from "classnames";
 
 import Head from "next/head";
+import useLocalStorage from "use-local-storage";
 
 async function requestTweetFromOpenAi(name) {
   const res = await fetch(`/api/model/${name}/generate_tweet`);
@@ -14,6 +18,13 @@ async function requestTweetFromOpenAi(name) {
 
 async function getHistory(name) {
   const res = await fetch(`/api/model/${name}/history`);
+  const json = await res.json();
+
+  return json;
+}
+
+async function sendVote(id, deltaVotes) {
+  const res = await fetch(`/api/tweet/${id}/vote?deltaVotes=${deltaVotes}`);
   const json = await res.json();
 
   return json;
@@ -66,26 +77,37 @@ function GenerateTweetButton({ onClick, isGenerating, isLoadingHistory }) {
   );
 }
 
-const transition = { type: "spring", stiffness: 500, damping: 50, mass: 1 };
-function Tweet({ text }) {
-  // const animations = {
-  //   layout: true,
-  //   initial: 'out',
-  //   style: {
-  //     // position: isPresent ? 'static' : 'absolute'
-  //     position: 'static'
-  //   },
-  //   animate: 'in',
-  //   // whileTap: 'tapped',
-  //   variants: {
-  //     in: { scaleY: 1, opacity: 1 },
-  //     out: { scaleY: 0, opacity: 0, zIndex: -1 },
-  //   },
-  //   transition
-  // }
-
+function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   return (
-    <motion.div layout className="p-4 rounded-xl bg-white mb-4">
+    <motion.div layout className="p-4 rounded-xl bg-white mb-4 flex flex-row">
+      <div className="flex flex-col content-center mt-1.5 mr-5">
+        <ChevronUpIcon
+          onClick={onVoteUp}
+          className={classnames(
+            "h-6 w-6",
+            myVote <= 0 ? "text-gray-300" : "text-emerald-700 stroke-[3px]"
+          )}
+        />
+        <div
+          className={classnames(
+            "text-xl text-center",
+            votes < 0
+              ? "text-amber-700"
+              : votes === 0
+              ? "text-gray-700"
+              : "text-emerald-700"
+          )}
+        >
+          {votes}
+        </div>
+        <ChevronDownIcon
+          onClick={onVoteDown}
+          className={classnames(
+            "h-6 w-6",
+            myVote >= 0 ? "text-gray-300" : "text-amber-700 stroke-[3px]"
+          )}
+        />
+      </div>
       <p className="text-2xl">{text}</p>
     </motion.div>
   );
@@ -95,9 +117,45 @@ export default function Model() {
   const { query, isReady } = useRouter();
   const { name } = query;
 
+  // initial `null` state is signals that no history has been fetched yet
   const [tweets, setTweets] = useState(null);
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [myVotes, setMyVotes] = useLocalStorage("myVotes", {});
+
+  const vote = useCallback(
+    (id, voteDirection) => {
+      console.log("vote", id, voteDirection);
+      if (isReady && name && voteDirection !== (myVotes[id] || 0)) {
+        let deltaVotes = voteDirection - (myVotes[id] || 0);
+        // Opportunistically update the vote count
+        setMyVotes({ ...myVotes, [id]: voteDirection });
+
+        const updatedTweets = [...tweets];
+        updatedTweets.find((t) => t.id === id).votes += deltaVotes;
+        setTweets(updatedTweets);
+
+        console.log(
+          "vote",
+          "voteDirection",
+          voteDirection,
+          "deltaVotes",
+          deltaVotes
+        );
+
+        // Then send the vote to the server, just log the result after it comes
+        sendVote(id, deltaVotes).then((json) => {
+          console.log("sendVote", json);
+          if (json.error) {
+            console.log("Error sending vote", json.error);
+          } else {
+            console.log("Vote sent", json.id, json.votes);
+          }
+        });
+      }
+    },
+    [myVotes, setMyVotes, isReady, name, tweets, setTweets]
+  );
 
   useEffect(() => {
     if (isReady && name) {
@@ -105,6 +163,7 @@ export default function Model() {
         if (json.error) {
           console.log("Error", json.error);
         } else {
+          console.log("Tweet history", json.tweets);
           setTweets(json.tweets);
         }
       });
@@ -122,7 +181,10 @@ export default function Model() {
             setError(json.error);
             setIsGenerating(false);
           } else {
-            setTweets([{ text: json.text, id: json.id }, ...tweets]);
+            setTweets([
+              { text: json.text, id: json.id, votes: json.votes },
+              ...tweets,
+            ]);
             setIsGenerating(false);
           }
         });
@@ -156,7 +218,19 @@ export default function Model() {
         <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
         <AnimatePresence>
           {tweets &&
-            tweets.map((tweet) => <Tweet key={tweet.id} text={tweet.text} />)}
+            tweets.map((tweet) => {
+              const myVote = myVotes[tweet.id] || 0;
+              return (
+                <Tweet
+                  key={tweet.id}
+                  text={tweet.text}
+                  votes={tweet.votes}
+                  myVote={myVote}
+                  onVoteDown={() => vote(tweet.id, myVote === -1 ? 0 : -1)}
+                  onVoteUp={() => vote(tweet.id, myVote === 1 ? 0 : 1)}
+                />
+              );
+            })}
         </AnimatePresence>
       </div>
     </div>

@@ -18,30 +18,31 @@ export default async function handler(req, res) {
           text: null,
         })
       );
-    }
-
-    const id = data[0].id;
-
-    const { data: dataTweets, error: errorTweets } = await supabase
-      .from("generated_tweets")
-      .select()
-      .eq("model_id", id)
-      .order("created_at", { ascending: false })
-      .limit(MAX_TWEETS);
-    if (data) {
-      res.end(
-        JSON.stringify({
-          error: null,
-          tweets: dataTweets,
-        })
-      );
     } else {
-      res.end(
-        JSON.stringify({
-          error: errorTweets,
-          tweets: null,
-        })
-      );
+      const id = data[0].id;
+
+      const { data: dataTweets, error: errorTweets } = await supabase
+        .from("generated_tweets")
+        .select("id, text, votes")
+        .eq("model_id", id)
+        .order("created_at", { ascending: false })
+        .limit(MAX_TWEETS);
+
+      if (data) {
+        res.end(
+          JSON.stringify({
+            error: null,
+            tweets: dataTweets,
+          })
+        );
+      } else {
+        res.end(
+          JSON.stringify({
+            error: errorTweets,
+            tweets: null,
+          })
+        );
+      }
     }
   } else {
     res.end(

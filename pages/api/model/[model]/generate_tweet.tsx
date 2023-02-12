@@ -59,6 +59,7 @@ export default async function handler(req, res) {
           error: null,
           text: responseText,
           id: dataInserted[0].id,
+          votes: 0,
         })
       );
     }

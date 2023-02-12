@@ -97,12 +97,8 @@ function VoteButton({ Icon, onClick, className }) {
 
 function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   return (
-    <motion.div
-      layout
-      transition={{ delay: 0.5 }}
-      className="p-4 rounded-xl bg-white mb-4 flex flex-row"
-    >
-      <div className="flex flex-col content-center mt-1.5 mr-5">
+    <motion.div layout className="p-4 rounded-xl bg-white mb-4 flex flex-row">
+      <div className="flex flex-col content-center mr-5">
         <VoteButton
           Icon={ChevronUpIcon}
           onClick={onVoteUp}
@@ -137,6 +133,30 @@ function Tweet({ text, votes, myVote, onVoteUp, onVoteDown }) {
   );
 }
 
+function SortBy({ onSortByVotes }) {
+  return (
+    <div className="flex flex-row items-center">
+      <div className="text-xl font-bold mr-2">Sort by</div>
+      <span className="isolate inline-flex rounded-md shadow-sm">
+        <button
+          onClick={() => onSortByVotes(false)}
+          type="button"
+          className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          Created time
+        </button>
+        <button
+          onClick={() => onSortByVotes(true)}
+          type="button"
+          className="relative -ml-px inline-flex items-center rounded-r-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          Votes
+        </button>
+      </span>
+    </div>
+  );
+}
+
 export default function Model() {
   const { query, isReady } = useRouter();
   const { name } = query;
@@ -145,7 +165,29 @@ export default function Model() {
   const [tweets, setTweets] = useState(null);
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSortByVotes, setIsSortByVotes] = useState(true);
   const [myVotes, setMyVotes] = useLocalStorage("myVotes", {});
+
+  const setAndSortTweets = useCallback(
+    (updatedTweets, isSortByVotes) => {
+      updatedTweets.sort((a, b) => {
+        if (isSortByVotes && a.votes !== b.votes) return b.votes - a.votes;
+
+        return b.id - a.id;
+      });
+      setTweets(updatedTweets);
+    },
+    [setTweets]
+  );
+
+  const handleSortByVotes = useCallback(
+    (isSortByVotes) => {
+      setIsSortByVotes(isSortByVotes);
+
+      setAndSortTweets([...tweets], isSortByVotes);
+    },
+    [setAndSortTweets, tweets, setTweets]
+  );
 
   const vote = useCallback(
     (id, voteDirection) => {
@@ -157,12 +199,7 @@ export default function Model() {
 
         const updatedTweets = [...tweets];
         updatedTweets.find((t) => t.id === id).votes += deltaVotes;
-        updatedTweets.sort((a, b) => {
-          if (a.votes !== b.votes) return b.votes - a.votes;
-
-          return b.id - a.id;
-        });
-        setTweets(updatedTweets);
+        setAndSortTweets(updatedTweets, isSortByVotes);
 
         console.log(
           "vote",
@@ -183,7 +220,15 @@ export default function Model() {
         });
       }
     },
-    [myVotes, setMyVotes, isReady, name, tweets, setTweets]
+    [
+      myVotes,
+      setMyVotes,
+      isReady,
+      name,
+      tweets,
+      setAndSortTweets,
+      isSortByVotes,
+    ]
   );
 
   useEffect(() => {
@@ -239,11 +284,16 @@ export default function Model() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="px-16 py-16">
-        <GenerateTweetButton
-          onClick={generateTweet}
-          isGenerating={isGenerating}
-          isLoadingHistory={tweets === null}
-        />
+        <div className="flex flex-row items-center mb-3">
+          <div className="mr-8">
+            <GenerateTweetButton
+              onClick={generateTweet}
+              isGenerating={isGenerating}
+              isLoadingHistory={tweets === null}
+            />
+          </div>
+          <SortBy onSortByVotes={handleSortByVotes} />
+        </div>
         <h1 className="text-6xl font-bold py-6">{name}: GPT-3 tweets</h1>
         <AnimatePresence>
           {tweets &&

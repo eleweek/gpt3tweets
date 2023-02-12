@@ -155,6 +155,18 @@ function Tweet({ layoutId, text, votes, myVote, onVoteUp, onVoteDown }) {
 }
 
 function SortBy({ onSortByVotes, isSortByVotes }) {
+  const selection = (
+    <motion.div
+      layout
+      layoutId="sort-by-selection"
+      className="absolute bg-white shadow flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
+    >
+      <span className="text-slate-600 ml-2 invisible">
+        {isSortByVotes ? "Votes" : "Created"}
+      </span>
+    </motion.div>
+  );
+
   return (
     <div className="flex flex-row items-center">
       <div className="text-xl font-bold mr-4">Sort by</div>
@@ -163,26 +175,40 @@ function SortBy({ onSortByVotes, isSortByVotes }) {
         role="tablist"
         aria-orientation="horizontal"
       >
-        <button
-          onClick={() => onSortByVotes(true)}
-          className={classnames(
-            isSortByVotes && "bg-white shadow",
-            "flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
-          )}
-          type="button"
-        >
-          <span className="ml-2 text-slate-600">Votes</span>
-        </button>
-        <button
-          onClick={() => onSortByVotes(false)}
-          className={classnames(
-            !isSortByVotes && "bg-white shadow",
-            "flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
-          )}
-          type="button"
-        >
-          <span className="ml-2 text-slate-900">Created</span>
-        </button>
+        <div>
+          {isSortByVotes && selection}
+          <button
+            onClick={() => onSortByVotes(true)}
+            className="flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
+            type="button"
+          >
+            <span
+              className={classnames(
+                isSortByVotes ? "text-slate-900" : "text-slate-600",
+                "ml-2 z-10"
+              )}
+            >
+              Votes
+            </span>
+          </button>
+        </div>
+        <div>
+          {!isSortByVotes && selection}
+          <button
+            onClick={() => onSortByVotes(false)}
+            className="flex items-center rounded-md py-[0.4rem] pl-2 pr-3 text-xl font-semibold"
+            type="button"
+          >
+            <span
+              className={classnames(
+                !isSortByVotes ? "text-slate-900" : "text-slate-600",
+                "z-10 ml-2"
+              )}
+            >
+              Created
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
